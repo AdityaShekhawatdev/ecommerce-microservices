@@ -52,26 +52,13 @@ export default function ProductDetail() {
         // Fetch recommendations
         try {
           setRecLoading(true);
-          const res = await api.get(`/products?limit=200`);
+          const category = prod.category ? `&category=${encodeURIComponent(prod.category)}` : '';
+          const res = await api.get(`/products?limit=100${category}`);
           const all = (res.data.data || []).filter((p: any) => p._id !== id);
-          // 1. Same category, in stock first
-          const sameCat = all.filter((p: any) => p.category?.toLowerCase() === prod.category?.toLowerCase());
-          const sameCatInStock = sameCat.filter((p: any) => p.stock > 0);
-          const sameCatOutOfStock = sameCat.filter((p: any) => p.stock === 0);
-          // 2. Other products, in stock first
-          const others = all.filter((p: any) => p.category?.toLowerCase() !== prod.category?.toLowerCase());
-          const othersInStock = others.filter((p: any) => p.stock > 0);
-          const othersOutOfStock = others.filter((p: any) => p.stock === 0);
-          // Combine: same category first, then others, in-stock prioritized
-          const combined = [...sameCatInStock, ...othersInStock, ...sameCatOutOfStock, ...othersOutOfStock];
-          // Deduplicate by _id
-          const seen = new Set<string>();
-          const unique = combined.filter((p: any) => {
-            if (seen.has(p._id)) return false;
-            seen.add(p._id);
-            return true;
-          });
-          setRecommendations(unique.slice(0, 12));
+          // Prioritise in-stock within the same category
+          const inStock = all.filter((p: any) => p.stock > 0);
+          const outOfStock = all.filter((p: any) => p.stock === 0);
+          setRecommendations([...inStock, ...outOfStock].slice(0, 12));
         } catch { /* ignore */ }
         finally { setRecLoading(false); }
       })

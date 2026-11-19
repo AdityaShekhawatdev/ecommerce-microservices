@@ -12,14 +12,19 @@ export class OrderRepository {
     return order;
   }
 
-  async findAll(filters: OrderFilters) {
-    const { page, limit, status, sortBy, sortOrder } = filters;
+  async findAll(filters: OrderFilters & { userId?: string }) {
+    const { page, limit, status, sortBy, sortOrder, userId } = filters;
     const skip = (page - 1) * limit;
 
     const query: any = {};
 
     if (status) {
       query.status = status;
+    }
+
+    // Always scope to the requesting user so users only see their own orders.
+    if (userId) {
+      query.userId = userId;
     }
 
     const sortField = sortBy || 'createdAt';

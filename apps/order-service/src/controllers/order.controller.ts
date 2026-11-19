@@ -29,12 +29,13 @@ export class OrderController {
   
 async getAllOrders(req: Request, res: Response, next: NextFunction) {
   try {
+    const userId = req.headers["x-user-id"] as string;
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
     const status = req.query.status as OrderStatus;
     const sortBy = req.query.sortBy as string || 'createdAt';
     const sortOrder = (req.query.sortOrder as 'asc' | 'desc') || 'desc';
-    const result = await orderService.getAllOrders({page,limit,status,sortBy,sortOrder});
+    const result = await orderService.getAllOrders({page,limit,status,sortBy,sortOrder,userId});
 
     res.status(200).json({
       success: true,

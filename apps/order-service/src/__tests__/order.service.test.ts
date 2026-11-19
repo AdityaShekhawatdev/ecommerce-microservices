@@ -19,7 +19,7 @@ vi.mock("../models/user.model", () => ({
   User: { findById: mockUserFindById },
 }));
 
-vi.mock("axios", () => ({ default: { get: mockAxiosGet } }));
+vi.mock("axios", () => ({ default: { get: mockAxiosGet, isAxiosError: (err: any) => err?.__isAxiosError === true } }));
 
 vi.mock("mongoose", () => ({
   default: {
@@ -73,7 +73,7 @@ describe("OrderService", () => {
 
       const result = await orderService.createOrder("user1", "prod1", 2, "UPI" as any);
 
-      expect(mockAxiosGet).toHaveBeenCalledWith("http://localhost:3003/api/products/prod1");
+      expect(mockAxiosGet).toHaveBeenCalledWith("http://localhost:3003/api/products/prod1", { timeout: 5000 });
       expect(mockOrderCreate).toHaveBeenCalled();
       // The order saga writes exactly two outbox events at creation:
       // ORDER_CREATED (product stock) + PAYMENT_INITIATED (payments).
